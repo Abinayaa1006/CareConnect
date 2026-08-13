@@ -96,11 +96,11 @@ Its purpose is to determine:
 │                                             │
 │  Appropriate Care Pathway                   │
 │                                             │
-│  🏥 Emergency → Healthcare Facility         │
+│  🏥 Emergency → Healthcare Facility        │
 │  👨‍⚕️ Medical Review → Doctor / PHC          │
 │  📅 Routine → Follow-up                     │
 │                                             │
-│  📹 Video / 🎧 Audio Consultation            │
+│  📹 Video / 🎧 Audio Consultation          │
 │  depending on connectivity                  │
 │                                             │
 └─────────────────────────────────────────────┘
