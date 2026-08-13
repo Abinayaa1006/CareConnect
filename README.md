@@ -8,7 +8,7 @@ CareConnect is a **proposed voice-first, offline-first rural healthcare platform
 
 ---
 
-## 🌾 Problem
+## Problem
 
 Rural communities often face barriers to timely healthcare:
 
@@ -56,7 +56,7 @@ Its purpose is to determine:
 
 ---
 
-# 🏗️ System Architecture
+# System Architecture
 
 ```text
                          FRONTEND
