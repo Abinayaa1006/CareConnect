@@ -172,15 +172,25 @@ The design will consider:
 * Low-bandwidth environments
 
 ---
-
 ## Proposed Technology
 
-* React
-* JavaScript
-* Tailwind CSS / CSS
-* React Router
-* Axios
-* Speech-to-text service integration
+### Frontend
+- React
+- JavaScript
+- Tailwind CSS
+- React Router
+- Axios
+- Browser MediaRecorder API — voice/audio capture
+
+### Frontend Responsibilities
+- Voice recording
+- Language selection
+- Patient interface
+- ASHA dashboard
+- Display symptom summary
+- Display triage result
+- Appointment and consultation interface
+- Offline UI and local data handling
 
 ---
 
