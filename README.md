@@ -244,38 +244,70 @@ This allows the system to remain technically manageable while retaining a scalab
                     Consultation
 ```
 
+                 FRONTEND
+┌─────────────────────────────────────┐
+│ Patient speaks                      │
+│        ↓                            │
+│ Microphone / Audio Recording        │
+│        ↓                            │
+│ Send audio to backend               │
+└──────────────────┬──────────────────┘
+                   ↓
+                 BACKEND
+┌─────────────────────────────────────┐
+│ Whisper                             │
+│ Speech → Regional-language Text     │
+│        ↓                            │
+│ IndicTrans2                         │
+│ Regional Language → English         │
+│        ↓                            │
+│ Symptom Analysis                    │
+│        ↓                            │
+│ Triage Engine                       │
+│        ↓                            │
+│ Emergency / Medical Review / Routine│
+└──────────────────┬──────────────────┘
+                   ↓
+                 FRONTEND
+┌─────────────────────────────────────┐
+│ Show appropriate care pathway       │
+│ Hospital / Doctor / Consultation   │
+└─────────────────────────────────────┘
 ---
-
 ## Proposed Technology Stack
 
 ### Frontend
-
-* React
-* JavaScript
-* Tailwind CSS / CSS
+- React
+- JavaScript
+- Tailwind CSS
+- React Router
+- Axios
+- MediaRecorder API for voice capture
 
 ### Backend
+- Python
+- FastAPI
+- Pydantic
+- SQLAlchemy
 
-* Python
-* FastAPI
+### Voice & Language Processing
+- OpenAI Whisper — Speech-to-Text
+- IndicTrans2 — Indian regional-language translation
+
+### Symptom Analysis
+- NLP / LLM
+
+### Triage
+- Rule-based triage engine
+- Predefined medical warning signs
 
 ### Database
-
-* SQLite for initial development
-* PostgreSQL for future deployment
-
-### AI / Language Processing
-
-* Speech-to-text
-* Language detection
-* Translation
-* Natural Language Processing
-* Symptom extraction
-* Rule-based triage
+- SQLite for initial development
+- PostgreSQL for future deployment
 
 ### Teleconsultation
+- WebRTC / equivalent technology
 
-* WebRTC or an equivalent communication technology
 
 ---
 
