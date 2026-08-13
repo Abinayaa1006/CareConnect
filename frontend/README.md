@@ -1,81 +1,119 @@
 # CareConnect Frontend
 
-The frontend of **CareConnect** provides a simple, accessible interface for patients, ASHA workers, and healthcare providers.
+This directory is planned to contain the frontend of **CareConnect**, a proposed voice-first rural healthcare platform.
 
-The interface is designed with a focus on **simplicity, accessibility, voice interaction, and low-bandwidth environments**.
+The frontend will be designed around **simplicity, accessibility, regional-language voice interaction, and low digital literacy**.
 
 ---
 
-## Main Interfaces
+## Frontend Goal
 
-### ASHA Worker
+The primary interaction will be voice-based rather than text-heavy.
 
-* Login
-* Dashboard
-* Patient registration
-* Symptom assessment
+The intended user journey is:
+
+```text id="6q2b5h"
+🗣️ Speak in Regional Language
+            ↓
+       Voice Processing
+            ↓
+      Symptom Information
+            ↓
+         🚦 Triage
+            ↓
+      🏥 Care Connection
+```
+
+---
+
+## Planned User Interfaces
+
+### Patient Interface
+
+The patient-facing interface is planned to provide:
+
+* Simple home screen
+* Language selection
+* Voice-based health assessment
+* Voice recording interface
+* Symptom processing status
 * Triage result
-* Patient history
-* Referrals
-* Appointments
-* Follow-ups
-
-### Patient
-
-* Home
-* Symptom checker
-* Voice/text symptom input
-* Triage result
-* Doctor consultation
-* Appointments
-* Health records
+* Healthcare guidance
+* Appointment booking
+* Consultation access
 * Emergency assistance
 
-### Doctor
+### ASHA Worker Interface
+
+The ASHA dashboard is planned to provide:
+
+* Patient registration
+* Start voice assessment
+* Patient history
+* Structured symptom summary
+* Triage result
+* Referral management
+* Appointment management
+* Follow-up cases
+* Offline case management
+
+### Doctor Interface
+
+A future healthcare-provider interface can include:
 
 * Referral requests
-* Patient information
-* Consultation
-* Follow-up recommendations
+* Patient summaries
+* Consultation requests
+* Audio/video consultation
+* Follow-up information
 
 ---
 
-## Frontend Flow
+## Planned Frontend Flow
 
-```text
-Login
+```text id="7g6e8c"
+Home
   ↓
-Dashboard
+Start Assessment
   ↓
-Patient Assessment
+Select Language
   ↓
-Symptom Input
+🗣️ Voice Input
   ↓
-Triage Result
+Processing
   ↓
-┌───────────────┐
-│ Emergency     │ → Healthcare Facility
-│ Medical Review│ → Doctor / PHC
-│ Routine       │ → Follow-up
-└───────────────┘
+Symptom Summary
+  ↓
+🚦 Triage Result
+  ↓
+┌──────────────────┐
+│ Emergency        │ → Healthcare Facility
+│ Medical Review   │ → Doctor / PHC
+│ Routine          │ → Follow-up
+└──────────────────┘
 ```
 
 ---
 
 ## Planned Screens
 
-```text
+```text id="0n2b0s"
 frontend/
 │
 ├── README.md
 │
 ├── src/
 │   ├── components/
+│   │
 │   ├── pages/
 │   │   ├── Login
+│   │   ├── Home
 │   │   ├── Dashboard
-│   │   ├── PatientAssessment
+│   │   ├── LanguageSelection
+│   │   ├── VoiceAssessment
+│   │   ├── SymptomSummary
 │   │   ├── TriageResult
+│   │   ├── Referral
 │   │   ├── Appointments
 │   │   └── Consultation
 │   │
@@ -90,27 +128,64 @@ frontend/
 
 ## Design Principles
 
-* Simple navigation
-* Large, accessible controls
-* Minimal text where possible
-* Voice-first interaction
-* Regional-language support
-* Mobile-first design
-* Clear emergency indicators
-* Low-bandwidth friendly interface
+### Voice First
+
+The microphone/voice interaction should be the primary action.
+
+### Regional Language
+
+The interface is intended to support multiple regional languages.
+
+### Simple Navigation
+
+The UI should minimize:
+
+* Typing
+* Complex forms
+* Medical terminology
+* Unnecessary navigation
+
+### Clear Triage Results
+
+The result should be immediately understandable:
+
+```text id="h8c6l2"
+🔴 EMERGENCY
+Seek immediate healthcare.
+
+🟡 MEDICAL REVIEW
+Connect with a doctor / PHC.
+
+🟢 ROUTINE
+Follow-up / routine care.
+```
+
+### Accessibility
+
+The design will consider:
+
+* Low digital literacy
+* Elderly users
+* Rural users
+* Limited reading ability
+* Small-screen devices
+* Low-bandwidth environments
 
 ---
 
-## Technology
+## Proposed Technology
 
 * React
 * JavaScript
 * Tailwind CSS / CSS
-* Axios
 * React Router
+* Axios
+* Speech-to-text service integration
 
 ---
 
-## Demo
+## Current Status
 
-The frontend prototype demonstrates the complete CareConnect workflow from **symptom capture to triage and healthcare connection**.
+The frontend is currently **planned and documented as part of the CareConnect concept**.
+
+Implementation will be developed in later stages of the project.
