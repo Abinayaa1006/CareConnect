@@ -1,201 +1,211 @@
 # CareConnect Frontend
 
-This directory is planned to contain the frontend of **CareConnect**, a proposed voice-first rural healthcare platform.
+This directory is planned to contain the frontend application for **CareConnect**, a proposed voice-first and offline-first rural healthcare platform.
 
-The frontend will be designed around **simplicity, accessibility, regional-language voice interaction, and low digital literacy**.
+The frontend will handle voice capture, language selection, the patient interface, the ASHA worker dashboard, and offline interaction with the backend.
 
 ---
 
 ## Frontend Goal
 
-The primary interaction will be voice-based rather than text-heavy.
+```mermaid
+flowchart LR
+    A["Record voice in regional language"] --> B["Send audio to backend"]
+    B --> C["Receive triage result"]
+    C --> D["Display care pathway"]
 
-The intended user journey is:
-
-```text id="6q2b5h"
-🗣️ Speak in Regional Language
-            ↓
-       Voice Processing
-            ↓
-      Symptom Information
-            ↓
-         🚦 Triage
-            ↓
-      🏥 Care Connection
+    classDef step fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
+    class A,B,C,D step
 ```
 
 ---
 
-## Planned User Interfaces
+## Planned Responsibilities
 
-### Patient Interface
+The frontend is expected to provide:
 
-The patient-facing interface is planned to provide:
-
-* Simple home screen
-* Language selection
-* Voice-based health assessment
-* Voice recording interface
-* Symptom processing status
-* Triage result
-* Healthcare guidance
-* Appointment booking
-* Consultation access
-* Emergency assistance
-
-### ASHA Worker Interface
-
-The ASHA dashboard is planned to provide:
-
-* Patient registration
-* Start voice assessment
-* Patient history
-* Structured symptom summary
-* Triage result
-* Referral management
-* Appointment management
-* Follow-up cases
-* Offline case management
-
-### Doctor Interface
-
-A future healthcare-provider interface can include:
-
-* Referral requests
-* Patient summaries
-* Consultation requests
-* Audio/video consultation
-* Follow-up information
+- Voice recording and playback
+- Language selection
+- The patient interface
+- The ASHA worker dashboard
+- Display of symptom information
+- Display of triage results
+- The referral and appointment interface
+- The consultation interface
+- Offline interaction and local data storage
 
 ---
 
-## Planned Frontend Flow
+## Patient and ASHA Worker Journey
 
-```text id="7g6e8c"
-Home
-  ↓
-Start Assessment
-  ↓
-Select Language
-  ↓
-🗣️ Voice Input
-  ↓
-Processing
-  ↓
-Symptom Summary
-  ↓
-🚦 Triage Result
-  ↓
-┌──────────────────┐
-│ Emergency        │ → Healthcare Facility
-│ Medical Review   │ → Doctor / PHC
-│ Routine          │ → Follow-up
-└──────────────────┘
+```mermaid
+flowchart TD
+    subgraph PF["Patient flow"]
+        direction TB
+        P1(["Open CareConnect"]) --> P2["Select language<br/>/language"]
+        P2 --> P3["Speak symptoms<br/>/speak"]
+        P3 --> P4["Speech-to-text + translation"]
+        P4 --> P5["Symptom analysis"]
+        P5 --> P6["Triage category generated"]
+        P6 --> P7["Care pathway shown<br/>/triage-result/:id"]
+        P7 --> P8(["Consultation or facility referral"])
+    end
+
+    subgraph AF["ASHA flow"]
+        direction TB
+        A1(["Open CareConnect"]) --> A2["ASHA login<br/>/asha/login"]
+        A2 --> A3["Register / assist patient<br/>/asha/new-case"]
+        A3 --> A4["Review structured symptoms"]
+        A4 --> A5["View triage result<br/>/asha/case/:id"]
+        A5 --> A6["Confirm referral or appointment"]
+        A6 --> A7(["Follow-up management"])
+    end
+
+    P6 -.routed to.-> A5
+    A6 -.status update.-> P7
+
+    classDef patientNode fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
+    classDef ashaNode fill:#0f5c4a,stroke:#10b981,color:#ffffff
+    classDef endpointNode fill:#333333,stroke:#999999,color:#ffffff
+
+    class P2,P3,P4,P5,P6,P7 patientNode
+    class A2,A3,A4,A5,A6 ashaNode
+    class P1,P8,A1,A7 endpointNode
+
+    style PF fill:transparent,stroke:none
+    style AF fill:transparent,stroke:none
 ```
 
 ---
 
-## Planned Screens
+## Pages
 
-```text id="0n2b0s"
+Proposed routes for the CareConnect frontend:
+
+| Route | Page | Access |
+|---|---|---|
+| `/` | Landing page | Public |
+| `/language` | Language selection | Public |
+| `/login` | Login | Public |
+| `/register` | Register | Public |
+| `/speak` | Speak symptoms (voice submission) | Patient |
+| `/triage-result/:id` | Triage result and care pathway | Patient |
+| `/my-records` | Patient case history | Patient |
+| `/asha/login` | ASHA worker login | ASHA Worker |
+| `/asha/new-case` | Register / assist a patient | ASHA Worker |
+| `/asha/case/:id` | Case detail and triage review | ASHA Worker |
+| `/consultation/:id` | Video / audio consultation | Patient · ASHA · Doctor |
+
+These routes reflect the current proposal and may change once implementation begins.
+
+---
+
+## Offline Handling
+
+```mermaid
+flowchart LR
+    A["Voice / assessment input"] --> B{"Connectivity available?"}
+    B -->|Yes| C["Send directly to backend"]
+    B -->|No| D["Store in local storage / IndexedDB"]
+    D --> E["Connection restored"]
+    E --> F["Sync queue sends stored cases"]
+    F --> G[("Central database")]
+    C --> G
+
+    classDef step fill:#1e3a6d,stroke:#3b82f6,color:#ffffff
+    classDef decision fill:#333333,stroke:#999999,color:#ffffff
+    class A,C,D,E,F,G step
+    class B decision
+```
+
+Teleconsultation itself requires connectivity, but voice capture and case data entry are designed to continue offline.
+
+---
+
+## Planned Frontend Structure
+
+```
 frontend/
-│
 ├── README.md
-│
-├── src/
-│   ├── components/
-│   │
-│   ├── pages/
-│   │   ├── Login
-│   │   ├── Home
-│   │   ├── Dashboard
-│   │   ├── LanguageSelection
-│   │   ├── VoiceAssessment
-│   │   ├── SymptomSummary
-│   │   ├── TriageResult
-│   │   ├── Referral
-│   │   ├── Appointments
-│   │   └── Consultation
-│   │
-│   ├── services/
-│   ├── assets/
-│   └── App.jsx
-│
-└── public/
+├── package.json
+└── src/
+    ├── main.jsx
+    ├── App.jsx
+    ├── pages/
+    │   ├── Landing.jsx
+    │   ├── Login.jsx
+    │   ├── Register.jsx
+    │   ├── LanguageSelect.jsx
+    │   ├── Speak.jsx
+    │   ├── TriageResult.jsx
+    │   ├── MyRecords.jsx
+    │   ├── asha/
+    │   │   ├── AshaLogin.jsx
+    │   │   ├── AshaNewCase.jsx
+    │   │   └── AshaCaseDetail.jsx
+    │   └── Consultation.jsx
+    ├── components/
+    │   ├── VoiceRecorder.jsx
+    │   ├── LanguagePicker.jsx
+    │   ├── TriageBadge.jsx
+    │   └── OfflineBanner.jsx
+    ├── services/
+    │   ├── api.js
+    │   ├── voiceService.js
+    │   ├── syncService.js
+    │   └── storageService.js
+    └── context/
+        ├── AuthContext.jsx
+        └── OfflineContext.jsx
 ```
 
 ---
 
-## Design Principles
+## Proposed Component Responsibilities
 
-### Voice First
-
-The microphone/voice interaction should be the primary action.
-
-### Regional Language
-
-The interface is intended to support multiple regional languages.
-
-### Simple Navigation
-
-The UI should minimize:
-
-* Typing
-* Complex forms
-* Medical terminology
-* Unnecessary navigation
-
-### Clear Triage Results
-
-The result should be immediately understandable:
-
-```text id="h8c6l2"
-🔴 EMERGENCY
-Seek immediate healthcare.
-
-🟡 MEDICAL REVIEW
-Connect with a doctor / PHC.
-
-🟢 ROUTINE
-Follow-up / routine care.
-```
-
-### Accessibility
-
-The design will consider:
-
-* Low digital literacy
-* Elderly users
-* Rural users
-* Limited reading ability
-* Small-screen devices
-* Low-bandwidth environments
+| Component | Purpose |
+|---|---|
+| `VoiceRecorder` | Captures audio using the MediaRecorder API and sends it for processing |
+| `LanguagePicker` | Lets the patient select or confirm a regional language |
+| `TriageBadge` | Displays the Emergency / Medical Review / Routine result |
+| `OfflineBanner` | Indicates offline status and pending sync items |
+| `AuthContext` | Manages patient and ASHA worker session state |
+| `OfflineContext` | Tracks connectivity and coordinates the local sync queue |
 
 ---
+
 ## Proposed Technology
 
-### Frontend
-- React
-- JavaScript
-- Tailwind CSS
-- React Router
-- Axios
-- Browser MediaRecorder API — voice/audio capture
+**Core framework**
+React, JavaScript, React Router, Axios
 
-### Frontend Responsibilities
+**Styling**
+Tailwind CSS
+
+**Voice capture**
+MediaRecorder API
+
+**Offline storage**
+Local storage / IndexedDB
+
+**Responsibilities covered by the frontend**
 - Voice recording
 - Language selection
 - Patient interface
-- ASHA dashboard
-- Display symptom summary
-- Display triage result
-- Appointment and consultation interface
-- Offline UI and local data handling
+- ASHA worker dashboard
+- Displaying symptom and triage information
+- Referral and appointment interface
+- Consultation interface
+- Offline interaction
 
 ---
 
 ## Current Status
 
-The frontend is currently **planned and documented as part of the CareConnect concept**.
+The frontend is currently planned and documented as part of the CareConnect concept. This repository serves as the initial technical documentation and architecture for future implementation.
 
-Implementation will be developed in later stages of the project.
+---
+
+## Medical Safety
+
+The frontend is intended only to capture patient input and display triage results returned by the backend. It does not perform diagnosis or make medical decisions — those remain the responsibility of the triage engine and qualified healthcare professionals.
