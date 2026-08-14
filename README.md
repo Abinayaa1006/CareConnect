@@ -1,530 +1,262 @@
 # CareConnect
 
-### Speak. Triage. Connect.
+**Speak. Triage. Connect.**
 
-CareConnect is a **proposed voice-first, offline-first rural healthcare platform** designed to help rural patients and ASHA workers access the appropriate level of healthcare through **regional-language voice interaction, symptom analysis, preliminary triage, and healthcare connectivity**.
+CareConnect is a proposed voice-first, offline-first rural healthcare platform. It is designed to help rural patients and ASHA workers reach the appropriate level of care through regional-language voice interaction, symptom analysis, preliminary triage, and healthcare connectivity.
 
-> **Speak in your regional language → Get assessed → Reach the right care**
+A patient speaks in their regional language, the system assesses the urgency of the case, and routes them toward the right care pathway.
 
 ---
 
 ## Problem
 
-Rural communities often face barriers to timely healthcare:
+Rural communities face several recurring barriers to timely healthcare:
 
-* Limited access to doctors and specialists
-* Long distances to healthcare facilities
-* Poor or unreliable internet connectivity
-* Regional-language and communication barriers
-* Low digital literacy
-* Difficulty identifying when symptoms may require urgent attention
-* Limited digital tools for ASHA workers
+- Limited access to doctors and specialists
+- Long distances to healthcare facilities
+- Poor or unreliable internet connectivity
+- Regional-language and communication barriers
+- Low digital literacy
+- Difficulty identifying when symptoms require urgent attention
+- Limited digital tools for ASHA workers
 
-Many digital healthcare platforms also depend heavily on typing, reading, and stable internet connectivity.
-
-CareConnect proposes a **voice-first and offline-first approach** to address these challenges.
+Most existing digital healthcare platforms depend heavily on typing, reading, and stable internet connectivity — assumptions that do not hold in many rural settings. CareConnect is built around a voice-first, offline-first approach instead.
 
 ---
 
-## 💡 Proposed Solution
+## Proposed Solution
 
-CareConnect is designed to allow a patient to **speak naturally in a supported regional language** instead of typing their symptoms.
+CareConnect allows a patient to speak naturally in a supported regional language instead of typing their symptoms. The system processes the spoken input, analyzes the symptoms, determines the urgency of the case, and connects the patient to the appropriate healthcare pathway.
 
-The proposed system processes the spoken input, analyzes the symptoms, determines the urgency of the case, and connects the patient to the appropriate healthcare pathway.
-
-### Core Flow
-
-```text
-🗣️ Regional-Language Voice
-            ↓
-      🎙️ Speech-to-Text
-            ↓
-       🌐 Translation
-            ↓
-    🧠 Symptom Analysis
-            ↓
-       🚦 Triage
-            ↓
-    🏥 Care Connection
-```
-
-CareConnect is **not intended to diagnose diseases**.
-
-Its purpose is to determine:
-
-> **How urgent is the situation, and what should the patient do next?**
+CareConnect is not intended to diagnose disease. Its purpose is to determine how urgent a situation is and what the patient should do next.
 
 ---
 
-# System Architecture
+## System Architecture
 
-```text
-                         FRONTEND
-┌─────────────────────────────────────────────┐
-│                                             │
-│  Patient / ASHA Worker                     │
-│                                             │
-│  🗣️ Speaks in Regional Language             │
-│              ↓                              │
-│  🎙️ Microphone / Audio Recording             │
-│              ↓                              │
-│  📤 Send Audio to Backend                   │
-│                                             │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-                       BACKEND
-┌─────────────────────────────────────────────┐
-│                                             │
-│  🎙️ Whisper                                │
-│  Speech → Regional-Language Text            │
-│              ↓                              │
-│  🌐 IndicTrans2                             │
-│  Regional Language → English                │
-│              ↓                              │
-│  🧠 Symptom Analysis                        │
-│              ↓                              │
-│  🚦 Triage Engine                           │
-│              ↓                              │
-│  🔴 Emergency / 🟡 Medical Review / 🟢 Routine │
-│                                             │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-                     FRONTEND
-┌─────────────────────────────────────────────┐
-│                                             │
-│  Appropriate Care Pathway                   │
-│                                             │
-│  🏥 Emergency → Healthcare Facility        │
-│  👨‍⚕️ Medical Review → Doctor / PHC          │
-│  📅 Routine → Follow-up                     │
-│                                             │
-│  📹 Video / 🎧 Audio Consultation          │
-│  depending on connectivity                  │
-│                                             │
-└─────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Patient["Patient<br/>Speak symptoms in regional language"]:::actor
+    ASHA["ASHA Worker<br/>Assist patient · Review cases"]:::actor
+
+    Patient --> FE
+    ASHA --> FE
+
+    FE["React Frontend<br/>MediaRecorder API · Tailwind CSS<br/><br/>Patient Interface | ASHA Dashboard"]:::frontend
+
+    FE -->|"Audio + REST API (JSON)"| BE
+
+    BE["FastAPI Backend<br/>Python · SQLAlchemy · JWT auth<br/><br/>Voice Router | Triage Router | Consultation Router"]:::backend
+
+    BE --> DB
+    BE --> AI
+
+    DB[("PostgreSQL Database<br/>Patients · Cases · Triage log")]:::database
+    AI["Voice &amp; Triage Pipeline<br/>Whisper STT · IndicTrans2 · Rule-based Triage Engine"]:::ai
+
+    AI --> Result["Category: Emergency / Medical Review / Routine"]:::result
+
+    DB -.saves data.-> BE
+    Result -.returns triage result.-> BE
+
+    classDef actor fill:#4a4a4a,stroke:#999,color:#fff
+    classDef frontend fill:#4c2a8f,stroke:#8b5cf6,color:#fff
+    classDef backend fill:#0f5c4a,stroke:#10b981,color:#fff
+    classDef database fill:#1e3a6d,stroke:#3b82f6,color:#fff
+    classDef ai fill:#7a4a12,stroke:#f59e0b,color:#fff
+    classDef result fill:#333333,stroke:#aaaaaa,color:#fff
 ```
 
 ---
 
-# 🗣️ Voice-First Interaction
+## Patient and ASHA Worker Journey
 
-Voice is the **primary input method** in CareConnect.
+```mermaid
+flowchart TD
+    subgraph PF["Patient flow"]
+        direction TB
+        P1(["Open CareConnect"]) --> P2["Select language<br/>/language"]
+        P2 --> P3["Speak symptoms<br/>/speak"]
+        P3 --> P4["Speech-to-text + translation"]
+        P4 --> P5["Symptom analysis"]
+        P5 --> P6["Triage category generated"]
+        P6 --> P7["Care pathway shown<br/>/triage-result/:id"]
+        P7 --> P8(["Consultation or facility referral"])
+    end
 
-A patient can speak naturally in a supported regional language without needing to type a detailed description of their symptoms.
+    subgraph AF["ASHA flow"]
+        direction TB
+        A1(["Open CareConnect"]) --> A2["ASHA login<br/>/asha/login"]
+        A2 --> A3["Register / assist patient<br/>/asha/new-case"]
+        A3 --> A4["Review structured symptoms"]
+        A4 --> A5["View triage result<br/>/asha/case/:id"]
+        A5 --> A6["Confirm referral or appointment"]
+        A6 --> A7(["Follow-up management"])
+    end
 
-### Example
+    P6 -.routed to.-> A5
+    A6 -.status update.-> P7
 
-```text
-Patient speaks
-      ↓
-Regional Language
-      ↓
-Whisper
-      ↓
-Regional-Language Text
-      ↓
-IndicTrans2
-      ↓
-English / Common Processing Language
-      ↓
-Symptom Analysis
+    classDef patientNode fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
+    classDef ashaNode fill:#0f5c4a,stroke:#10b981,color:#ffffff
+    classDef endpointNode fill:#333333,stroke:#999999,color:#ffffff
+
+    class P2,P3,P4,P5,P6,P7 patientNode
+    class A2,A3,A4,A5,A6 ashaNode
+    class P1,P8,A1,A7 endpointNode
+
+    style PF fill:transparent,stroke:none
+    style AF fill:transparent,stroke:none
 ```
 
-The original regional-language input can also be retained for transparency and ASHA/healthcare-worker review.
+---
+
+## Voice-First Interaction
+
+Voice is the primary input method in CareConnect. A patient can speak naturally in a supported regional language without needing to type a description of their symptoms.
+
+Processing path: regional-language speech → Whisper → regional-language text → IndicTrans2 → English (or another common processing language) → symptom analysis.
+
+The original regional-language input is retained for transparency and for ASHA or healthcare-worker review.
 
 ---
 
-# 🌐 Regional Language Support
+## Regional Language Support
 
-CareConnect is designed to support **multiple Indian regional languages**.
+CareConnect is designed to support multiple Indian regional languages. Language processing is kept separate from the core triage system so additional languages can be added over time without changing the triage logic.
 
-The architecture separates language processing from the core triage system so that additional languages can be incorporated over time.
+Path: regional language → speech-to-text → translation → common processing representation → symptom analysis → triage.
 
-The intended approach is:
+For initial development, one regional language will be implemented and validated before expanding to others.
 
-```text
-Regional Language
-       ↓
-Speech-to-Text
-       ↓
-Translation
-       ↓
-Common Processing Representation
-       ↓
-Symptom Analysis
-       ↓
-Triage
+---
+
+## Symptom Analysis
+
+After speech is converted and translated, the system identifies relevant information from the patient's description — symptoms, duration, severity, associated symptoms, and potential warning signs.
+
+For example, a patient reporting chest pain and difficulty breathing would have both symptoms identified and passed to triage.
+
+Symptom analysis supports triage. It does not produce a diagnosis.
+
+---
+
+## Triage
+
+Triage determines how urgently a patient needs medical attention and what the appropriate next step should be. CareConnect uses three categories:
+
+| Category | Meaning | Suggested path |
+|---|---|---|
+| Emergency | Potentially serious warning signs | Immediate healthcare facility |
+| Medical Review | Requires professional assessment | Doctor or PHC |
+| Routine | No immediate warning signs identified | Follow-up / routine care |
+
+CareConnect does not say "you have disease X." It communicates that a patient's symptoms may require immediate attention, professional review, or routine follow-up.
+
+Potential emergency cases are not delayed by teleconsultation — a detected red flag routes the patient directly to a healthcare facility rather than into a consultation queue. Non-emergency cases proceed toward remote medical consultation.
+
+---
+
+## Connectivity-Aware Healthcare
+
+CareConnect adapts the consultation method to available network conditions:
+
+| Connectivity | Consultation mode |
+|---|---|
+| Good | Video consultation |
+| Limited | Audio consultation |
+| None | Store data locally, synchronize once connectivity returns |
+
+Essential patient assessment does not depend entirely on continuous internet access. Voice input and assessment data can be captured and stored locally, then synchronized to the central database once connectivity is restored. Teleconsultation itself still requires connectivity, but case capture does not.
+
+---
+
+## Role of ASHA Workers
+
+ASHA workers are a core part of the CareConnect ecosystem, acting as a bridge between the rural community and formal healthcare services. The platform assists them with:
+
+- Patient registration and voice-based assessment
+- Reviewing structured symptom information and triage results
+- Emergency and doctor/PHC referrals
+- Appointment assistance and follow-up management
+- Offline case management
+
+---
+
+## Proposed Technology Stack
+
+### Frontend
+React, JavaScript, Tailwind CSS, React Router, Axios, the MediaRecorder API for voice capture, and local storage / IndexedDB for offline data handling.
+
+Responsibilities: voice recording, language selection, the patient interface, the ASHA dashboard, displaying symptom and triage information, the referral and appointment interface, the consultation interface, and offline interaction.
+
+### Backend
+Python, FastAPI, Pydantic, SQLAlchemy.
+
+Responsibilities: API management, patient data management, the voice processing pipeline, the translation pipeline, symptom analysis, triage, referrals, appointments, consultation management, and synchronization.
+
+### Voice and Language Processing
+- **Whisper** — speech-to-text
+- **IndicTrans2** — translates Indian regional languages into a common processing language such as English
+
+### Symptom Analysis
+Natural language processing, LLM-assisted information extraction, or rule-based symptom structuring. The exact approach will be selected during implementation.
+
+### Triage
+A rule-based triage engine using predefined warning signs, urgency classification, and emergency escalation rules.
+
+### Database
+SQLite for initial development; PostgreSQL for future deployment.
+
+### Teleconsultation
+WebRTC or an equivalent real-time communication technology, with adaptive audio/video based on connectivity.
+
+---
+
+## Repository Structure
+
 ```
-
-For initial development, one regional language can be selected for implementation and validation before expanding to additional languages.
-
----
-
-# 🧠 Symptom Analysis
-
-After speech is converted and translated, the system is designed to identify relevant information from the patient's description.
-
-Possible information includes:
-
-* Symptoms
-* Duration
-* Severity
-* Associated symptoms
-* Potential warning signs
-
-For example:
-
-```text
-Patient says:
-"I have chest pain and difficulty breathing."
-
-        ↓
-
-Identified information:
-• Chest pain
-• Breathing difficulty
-
-        ↓
-
-Triage
-```
-
-Symptom analysis is used to support **triage**, not to provide a definitive diagnosis.
-
----
-
-# 🚦 Triage
-
-### What is triage?
-
-Triage means determining **how urgently a patient needs medical attention and what the appropriate next step should be**.
-
-CareConnect proposes three broad categories:
-
-| Category              | Meaning                               | Suggested Path                |
-| --------------------- | ------------------------------------- | ----------------------------- |
-| 🔴 **Emergency**      | Potentially serious warning signs     | Immediate healthcare facility |
-| 🟡 **Medical Review** | Requires professional assessment      | Doctor / PHC                  |
-| 🟢 **Routine**        | No immediate warning signs identified | Follow-up / routine care      |
-
-### Example
-
-```text
-Symptoms
-   ↓
-Warning-Sign Check
-   ↓
-┌────────────┬────────────────┬────────────┐
-│ 🔴         │ 🟡             │ 🟢         │
-│ Emergency  │ Medical Review │ Routine    │
-└────────────┴────────────────┴────────────┘
-     ↓              ↓              ↓
-  Hospital      Doctor / PHC    Follow-up
-```
-
-CareConnect does **not** claim:
-
-> "You have disease X."
-
-Instead, it aims to communicate:
-
-> "Your symptoms may require immediate medical attention."
-
----
-
-# 🚨 Emergency-First Design
-
-A key principle of CareConnect is that **potential emergency cases should not be delayed by teleconsultation**.
-
-```text
-Symptoms
-    ↓
-Potential Red Flag
-    ↓
-🔴 EMERGENCY
-    ↓
-Immediate Healthcare Facility
-```
-
-For appropriate non-emergency cases, the system can proceed toward remote medical consultation.
-
----
-
-# 📡 Connectivity-Aware Healthcare
-
-Poor connectivity is a major consideration in rural healthcare.
-
-CareConnect is therefore designed to adapt the consultation method according to available network conditions.
-
-```text
-              Network Status
-                    ↓
-        ┌───────────┼───────────┐
-        ↓           ↓           ↓
-      Good       Limited       None
-        ↓           ↓           ↓
-     📹 Video     🎧 Audio    📴 Offline
-   Consultation Consultation  Storage
-                                ↓
-                              Sync
-                               Later
-```
-
-### Good connectivity
-
-→ Video consultation
-
-### Limited connectivity
-
-→ Audio consultation
-
-### No connectivity
-
-→ Store essential information locally and synchronize when connectivity returns.
-
----
-
-# 📴 Offline-First Approach
-
-CareConnect is designed so that essential patient assessment does not completely depend on continuous internet connectivity.
-
-```text
-No Internet
-     ↓
-Voice / Patient Assessment
-     ↓
-Local Case Storage
-     ↓
-Connection Restored
-     ↓
-Synchronization
-     ↓
-Central Database
-```
-
-Teleconsultation itself requires connectivity, but essential case capture and data storage can continue offline.
-
----
-
-# 👩‍⚕️ Role of ASHA Workers
-
-ASHA workers are an important part of the proposed CareConnect ecosystem.
-
-The platform is designed to assist them with:
-
-* Patient registration
-* Voice-based assessment
-* Structured symptom information
-* Triage results
-* Emergency referrals
-* Doctor/PHC referrals
-* Appointment assistance
-* Follow-up management
-* Offline case management
-
-The ASHA worker can therefore act as a **bridge between the rural community and formal healthcare services**.
-
----
-
-# 👤 Patient Experience
-
-The intended patient experience is deliberately simple:
-
-```text
-1. Select / confirm language
-           ↓
-2. 🗣️ Speak symptoms
-           ↓
-3. CareConnect processes the voice
-           ↓
-4. Symptoms are analyzed
-           ↓
-5. 🚦 Triage category is generated
-           ↓
-6. 🏥 Appropriate care pathway
-```
-
-The patient should not need to:
-
-* Type lengthy medical descriptions
-* Know medical terminology
-* Navigate complicated forms
-* Have high digital literacy
-
----
-
-# 🛠️ Proposed Technology Stack
-
-## Frontend
-
-* React
-* JavaScript
-* Tailwind CSS
-* React Router
-* Axios
-* **MediaRecorder API** — voice/audio capture
-* Local storage / IndexedDB — offline data handling
-
-### Frontend Responsibilities
-
-* Voice recording
-* Language selection
-* Patient interface
-* ASHA dashboard
-* Display symptom information
-* Display triage results
-* Referral and appointment interface
-* Consultation interface
-* Offline interaction
-
----
-
-## Backend
-
-* Python
-* FastAPI
-* Pydantic
-* SQLAlchemy
-
-### Backend Responsibilities
-
-* API management
-* Patient data management
-* Voice processing pipeline
-* Translation pipeline
-* Symptom analysis
-* Triage
-* Referrals
-* Appointments
-* Consultation management
-* Synchronization
-
----
-
-## 🎙️ Voice & Language Processing
-
-### Whisper
-
-**Speech-to-text**
-
-Converts the patient's spoken regional-language audio into text.
-
-### IndicTrans2
-
-**Indian regional-language translation**
-
-Translates supported Indian regional-language text into a common processing language such as English.
-
----
-
-## 🧠 Symptom Analysis
-
-Potential technologies:
-
-* Natural Language Processing
-* LLM-assisted information extraction
-* Rule-based symptom structuring
-
-The exact model/service can be selected during implementation.
-
----
-
-## 🚦 Triage
-
-* Rule-based triage engine
-* Predefined warning signs
-* Urgency classification
-* Emergency escalation rules
-
----
-
-## 🗄️ Database
-
-### Initial Development
-
-* SQLite
-
-### Future Deployment
-
-* PostgreSQL
-
----
-
-## 📹 Teleconsultation
-
-* WebRTC or equivalent real-time communication technology
-* Adaptive audio/video based on connectivity
-
----
-
-# 📁 Repository Structure
-
-```text
 CareConnect/
-│
 ├── README.md
-│
 ├── frontend/
 │   └── README.md
-│
 └── backend/
     └── README.md
 ```
 
-The current repository documents the proposed system architecture and implementation plan.
+---
+
+## Current Project Stage
+
+**Status: concept / proposal stage.**
+
+At this stage, the repository and project presentation cover the problem definition, proposed solution, system architecture, technology choices, healthcare workflow, triage methodology, and offline-first approach. Frontend and backend implementation is planned for a later development stage.
 
 ---
 
-# 🎯 Current Project Stage
+## Future Scope
 
-**Current status: Concept / Proposal Stage**
-
-At this stage, the repository and project presentation focus on:
-
-* Problem definition
-* Proposed solution
-* System architecture
-* Technology choices
-* Healthcare workflow
-* Triage methodology
-* Offline-first approach
-* Future implementation plan
-
-The actual frontend and backend implementation is planned for a later development stage.
+- Support for additional Indian regional languages
+- Offline speech recognition
+- Improved multilingual translation
+- Integration with government healthcare systems
+- Ambulance and emergency-service integration
+- Real-time doctor availability
+- Electronic health records
+- Community health analytics
+- Advanced AI-assisted healthcare decision support
+- Expansion to additional rural healthcare workflows
 
 ---
 
-# 🚀 Future Scope
+## Medical Safety
 
-* Support for additional Indian regional languages
-* Offline speech recognition
-* Improved multilingual translation
-* Integration with government healthcare systems
-* Ambulance and emergency-service integration
-* Real-time doctor availability
-* Electronic health records
-* Community health analytics
-* Advanced AI-assisted healthcare decision support
-* Expansion to additional rural healthcare workflows
+CareConnect is proposed as a healthcare support and preliminary triage system. It is not intended to provide definitive medical diagnoses or replace qualified healthcare professionals. The triage system is intended to help patients and healthcare workers identify the appropriate level of care.
 
 ---
 
-# ⚕️ Medical Safety
+## Vision
 
-CareConnect is proposed as a **healthcare support and preliminary triage system**.
+CareConnect aims to make the right level of healthcare accessible to every rural patient, regardless of language, distance, connectivity, or digital literacy.
 
-It is not intended to provide definitive medical diagnoses or replace qualified healthcare professionals.
-
-The triage system is intended to assist patients and healthcare workers in identifying the appropriate level of care.
-
----
-
-# 🌍 Vision
-
-> **Make the right healthcare accessible to every rural patient — regardless of language, distance, connectivity, or digital literacy.**
-
-### **CareConnect**
-
-**Speak. Triage. Connect.**
+**CareConnect — Speak. Triage. Connect.**
