@@ -36,47 +36,6 @@ The frontend is expected to provide:
 
 ---
 
-## Patient and ASHA Worker Journey
-
-```mermaid
-flowchart TD
-    subgraph PF["Patient flow"]
-        direction TB
-        P1(["Open CareConnect"]) --> P2["Select language<br/>/language"]
-        P2 --> P3["Speak symptoms<br/>/speak"]
-        P3 --> P4["Speech-to-text + translation"]
-        P4 --> P5["Symptom analysis"]
-        P5 --> P6["Triage category generated"]
-        P6 --> P7["Care pathway shown<br/>/triage-result/:id"]
-        P7 --> P8(["Consultation or facility referral"])
-    end
-
-    subgraph AF["ASHA flow"]
-        direction TB
-        A1(["Open CareConnect"]) --> A2["ASHA login<br/>/asha/login"]
-        A2 --> A3["Register / assist patient<br/>/asha/new-case"]
-        A3 --> A4["Review structured symptoms"]
-        A4 --> A5["View triage result<br/>/asha/case/:id"]
-        A5 --> A6["Confirm referral or appointment"]
-        A6 --> A7(["Follow-up management"])
-    end
-
-    P6 -.routed to.-> A5
-    A6 -.status update.-> P7
-
-    classDef patientNode fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
-    classDef ashaNode fill:#0f5c4a,stroke:#10b981,color:#ffffff
-    classDef endpointNode fill:#333333,stroke:#999999,color:#ffffff
-
-    class P2,P3,P4,P5,P6,P7 patientNode
-    class A2,A3,A4,A5,A6 ashaNode
-    class P1,P8,A1,A7 endpointNode
-
-    style PF fill:transparent,stroke:none
-    style AF fill:transparent,stroke:none
-```
-
----
 
 ## Pages
 
