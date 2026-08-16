@@ -33,11 +33,10 @@ CareConnect is not intended to diagnose disease. Its purpose is to determine how
 ---
 
 ## System Architecture
-
 ```mermaid
 flowchart TD
-    Patient["Patient<br/>Speak symptoms in regional language"]:::actor
-    ASHA["ASHA Worker<br/>Assist patient · Review cases"]:::actor
+    Patient["Patient<br/>Speak symptoms in Tamil"]:::actor
+    ASHA["ASHA Worker<br/>Assist patient · Review case"]:::actor
 
     Patient --> FE
     ASHA --> FE
@@ -52,61 +51,101 @@ flowchart TD
     BE --> AI
 
     DB[("PostgreSQL Database<br/>Patients · Cases · Triage log")]:::database
-    AI["Voice &amp; Triage Pipeline<br/>Whisper STT · IndicTrans2 · Rule-based Triage Engine"]:::ai
+    AI["Voice & Triage Pipeline<br/>Whisper STT (Tamil) · IndicTrans2 · Rule-based Triage Engine"]:::ai
 
-    AI --> Result["Category: Emergency / Medical Review / Routine"]:::result
+    AI --> RESULT["Category: Emergency / Medical Review / Routine"]:::result
+
+    RESULT --> HOSP["Hospital<br/>(Emergency)"]:::red
+    RESULT --> DOC["Doctor / PHC<br/>(Medical Review, via Teleconsultation)"]:::yellow
+    RESULT --> FU["Follow-up<br/>(Routine)"]:::green
 
     DB -.saves data.-> BE
-    Result -.returns triage result.-> BE
+    RESULT -.returns triage result.-> BE
 
-    classDef actor fill:#4a4a4a,stroke:#999,color:#fff
-    classDef frontend fill:#4c2a8f,stroke:#8b5cf6,color:#fff
-    classDef backend fill:#0f5c4a,stroke:#10b981,color:#fff
-    classDef database fill:#1e3a6d,stroke:#3b82f6,color:#fff
-    classDef ai fill:#7a4a12,stroke:#f59e0b,color:#fff
-    classDef result fill:#333333,stroke:#aaaaaa,color:#fff
+    classDef actor fill:#4a4a4a,stroke:#999999,color:#ffffff
+    classDef frontend fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
+    classDef backend fill:#0f5c4a,stroke:#10b981,color:#ffffff
+    classDef database fill:#1e3a6d,stroke:#3b82f6,color:#ffffff
+    classDef ai fill:#7a4a12,stroke:#f59e0b,color:#ffffff
+    classDef result fill:#333333,stroke:#999999,color:#ffffff
+    classDef red fill:#7a1f1f,stroke:#ef4444,color:#ffffff
+    classDef yellow fill:#7a4a12,stroke:#f59e0b,color:#ffffff
+    classDef green fill:#14532d,stroke:#22c55e,color:#ffffff
 ```
-
 ---
 
 ## Patient and ASHA Worker Journey
-
 ```mermaid
 flowchart TD
-    subgraph PF["Patient flow"]
+    PLATFORM["CareConnect Healthcare Platform<br/>Prototype language: Tamil (Tamil · English · Hindi available)"]
+
+    PLATFORM --> AL
+    PLATFORM --> PL
+
+    subgraph ASHAFLOW["ASHA / Frontline Worker Workflow"]
         direction TB
-        P1(["Open CareConnect"]) --> P2["Select language<br/>/language"]
-        P2 --> P3["Speak symptoms<br/>/speak"]
-        P3 --> P4["Speech-to-text + translation"]
-        P4 --> P5["Symptom analysis"]
-        P5 --> P6["Triage category generated"]
-        P6 --> P7["Care pathway shown<br/>/triage-result/:id"]
-        P7 --> P8(["Consultation or facility referral"])
+        AL(["Frontline Worker Login<br/>(Prototype: ASHA Worker)"]) --> AR["Patient registration / assistance"]
+        AR --> ASC["Symptom collection<br/>ASHA-assisted, patient speaks Tamil"]
+        ASC --> ASTT["Speech-to-Text"]
+        ASTT --> ASS["Structured symptom summary"]
+        ASS --> AREV["ASHA reviews symptoms & confirms"]
     end
 
-    subgraph AF["ASHA flow"]
+    subgraph PATIENTFLOW["Patient Workflow"]
         direction TB
-        A1(["Open CareConnect"]) --> A2["ASHA login<br/>/asha/login"]
-        A2 --> A3["Register / assist patient<br/>/asha/new-case"]
-        A3 --> A4["Review structured symptoms"]
-        A4 --> A5["View triage result<br/>/asha/case/:id"]
-        A5 --> A6["Confirm referral or appointment"]
-        A6 --> A7(["Follow-up management"])
+        PL(["Patient Login"]) --> PH["Patient home<br/>Symptom check · Visit history · Guidance · Contact ASHA · Help"]
+        PH --> PSC["Symptom check<br/>Patient speaks Tamil"]
+        PSC --> PSTT["Speech-to-Text"]
+        PSTT --> PSS["Structured symptom summary"]
     end
 
-    P6 -.routed to.-> A5
-    A6 -.status update.-> P7
+    AREV --> TRIAGE
+    PSS --> TRIAGE
 
-    classDef patientNode fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
-    classDef ashaNode fill:#0f5c4a,stroke:#10b981,color:#ffffff
-    classDef endpointNode fill:#333333,stroke:#999999,color:#ffffff
+    TRIAGE{"Rule-based triage engine<br/>shared decision support, not diagnosis"}
 
-    class P2,P3,P4,P5,P6,P7 patientNode
-    class A2,A3,A4,A5,A6 ashaNode
-    class P1,P8,A1,A7 endpointNode
+    TRIAGE --> RED["RED — Emergency detected"]
+    TRIAGE --> YEL["YELLOW — Medical review required"]
+    TRIAGE --> GRE["GREEN — Routine case"]
 
-    style PF fill:transparent,stroke:none
-    style AF fill:transparent,stroke:none
+    RED --> ERF["Immediate emergency referral"]
+    ERF --> HOSP["Hospital / emergency facility"]
+    HOSP --> ECALL["Emergency call / directions"]
+
+    YEL --> COORD["Care coordination options"]
+    COORD --> PHCAPT["Book PHC appointment"]
+    COORD --> TELE["Teleconsultation<br/>Audio / Video"]
+    COORD --> ASSIST["Request ASHA assistance<br/>(patient workflow only)"]
+    ASSIST --> ACOORD["Assigned ASHA coordinates care"]
+    ACOORD --> PHCAPT
+    ACOORD --> TELE
+    PHCAPT --> DOC["Doctor / PHC assessment"]
+    TELE --> DOC
+
+    GRE --> GUID["General guidance / monitoring"]
+    GUID --> FU["Follow-up if required"]
+    FU --> PHC2["PHC visit only if required"]
+
+    classDef platform fill:#333333,stroke:#999999,color:#ffffff
+    classDef asha fill:#0f5c4a,stroke:#10b981,color:#ffffff
+    classDef patient fill:#4c2a8f,stroke:#8b5cf6,color:#ffffff
+    classDef triage fill:#333333,stroke:#999999,color:#ffffff
+    classDef red fill:#7a1f1f,stroke:#ef4444,color:#ffffff
+    classDef yellow fill:#7a4a12,stroke:#f59e0b,color:#ffffff
+    classDef green fill:#14532d,stroke:#22c55e,color:#ffffff
+    classDef endpoint fill:#1e3a6d,stroke:#3b82f6,color:#ffffff
+
+    class PLATFORM platform
+    class AL,AR,ASC,ASTT,ASS,AREV asha
+    class PL,PH,PSC,PSTT,PSS patient
+    class TRIAGE triage
+    class RED,ERF,HOSP,ECALL red
+    class YEL,COORD,PHCAPT,TELE,ASSIST,ACOORD yellow
+    class GRE,GUID,FU,PHC2 green
+    class DOC endpoint
+
+    style ASHAFLOW fill:transparent,stroke:none
+    style PATIENTFLOW fill:transparent,stroke:none
 ```
 
 ---
